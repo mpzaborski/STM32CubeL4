@@ -46,13 +46,13 @@
 /* User can use this section to tailor USARTx/UARTx instance used and associated
    resources */
 /* Definition for TIMx clock resources */
-#define TIMx                           TIM3
-#define TIMx_CLK_ENABLE()              __HAL_RCC_TIM3_CLK_ENABLE()
+#define TIMx                           TIM6
+#define TIMx_CLK_ENABLE()              __HAL_RCC_TIM6_CLK_ENABLE()
 
 
 /* Definition for TIMx's NVIC */
-#define TIMx_IRQn                      TIM3_IRQn
-#define TIMx_IRQHandler                TIM3_IRQHandler
+#define TIMx_IRQn                      TIM6_IRQn
+#define TIMx_IRQHandler                TIM6_IRQHandler
 
 /* Definition for USARTx clock resources */
 #define USARTx                           USART2
@@ -85,7 +85,7 @@
 /* Definition for I2Cx Pins */
 #define I2Cx_SCL_PIN                    GPIO_PIN_8
 #define I2Cx_SCL_GPIO_PORT              GPIOB
-#define I2Cx_SDA_PIN                    GPIO_PIN_9
+#define I2Cx_SDA_PIN                    GPIO_PIN_7
 #define I2Cx_SDA_GPIO_PORT              GPIOB
 #define I2Cx_SCL_SDA_AF                 GPIO_AF4_I2C1
 

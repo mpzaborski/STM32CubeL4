@@ -51,6 +51,7 @@ target_compile_definitions(${EXECUTABLE} PRIVATE
         -DSSD1306_I2C_PORT=I2cHandle
         -DSTM32L4
         -DBME280_32BIT_ENABLE
+        -DUSE_FULL_ASSERT
         )
 
 target_include_directories(${EXECUTABLE} PRIVATE

@@ -63,7 +63,7 @@ static struct bme280_dev bme_dev;
 static volatile uint8_t displayActive = 0;
 
 /* Private function prototypes -----------------------------------------------*/
-static void SystemClock_Config(void);
+static void SystemClock_80MHz(void);
 static void Error_Handler(void);
 static void UartInit(void);
 static void I2cInit(void);
@@ -90,10 +90,9 @@ static void I2cInit(void)
 {
   /*##-1- Configure the I2C peripheral ######################################*/
   I2cHandle.Instance             = I2Cx;
-  I2cHandle.Init.ClockSpeed      = 400000;
+  I2cHandle.Init.Timing      = I2C_TIMING;
   I2cHandle.Init.AddressingMode  = I2C_ADDRESSINGMODE_7BIT;
   I2cHandle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  I2cHandle.Init.DutyCycle       = I2C_DUTYCYCLE_16_9;
   I2cHandle.Init.OwnAddress1     = I2C_MASTER_ADDRESS;
   I2cHandle.Init.OwnAddress2     = 0xFE;
   I2cHandle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
@@ -139,10 +138,10 @@ static void EXTILine8_Config(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   GPIO_InitStructure.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStructure.Pin = GPIO_PIN_6;
+  GPIO_InitStructure.Pin = GPIO_PIN_8;
   GPIO_InitStructure.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
-  HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6, GPIO_PIN_SET);
+  //HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6, GPIO_PIN_SET);
 
   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
@@ -186,14 +185,13 @@ int main(void)
      */
   HAL_Init();
 
-  /* Configure the System clock to have a frequency of 84 MHz */
-  SystemClock_Config();
+  /* Configure the system clock to 80 MHz */
+  SystemClock_80MHz();
 
-  /* -1- Enable GPIOA Clock (to be able to program the configuration registers) */
-  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   EXTILine8_Config();
   UartInit();
+  HAL_UART_Transmit(&UartHandle, (uint8_t*)"uart initialized\n", strlen("uart initialized\n"), 10);
   I2cInit();
   TimerInit();
   bme280_port_sensor_init(&bme_dev);
@@ -202,10 +200,12 @@ int main(void)
 
   ssd1306_Init();
   ssd1306_WriteCommand(0xAE); //display off
+  HAL_UART_Transmit(&UartHandle, (uint8_t*)"ssd1306 initialized\n", strlen("ssd1306 initialized\n"), 10);
 
   while(1)
   {
 	bme280_get_sensor_data(BME280_ALL, &bme280_d, &bme_dev);
+	HAL_UART_Transmit(&UartHandle, (uint8_t*)"in loop\n", strlen("in loop\n"), 10);
     if(displayActive)
     {
       sprintf(buffer, "T:%ld, H:%ld P:%ld\n\r",bme280_d.temperature, bme280_d.humidity, bme280_d.pressure);
@@ -225,7 +225,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  if(GPIO_Pin == GPIO_PIN_6)
+  if(GPIO_Pin == GPIO_PIN_8)
   {
     displayActive = 1;
     ssd1306_WriteCommand(0xAF); //display on
@@ -236,63 +236,69 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /**
   * @brief  System Clock Configuration
   *         The system Clock is configured as follow : 
-  *            System Clock source            = PLL (HSI)
-  *            SYSCLK(Hz)                     = 84000000
-  *            HCLK(Hz)                       = 84000000
+  *            System Clock source            = PLL (MSI)
+  *            SYSCLK(Hz)                     = 80000000
+  *            HCLK(Hz)                       = 80000000
   *            AHB Prescaler                  = 1
-  *            APB1 Prescaler                 = 2
+  *            APB1 Prescaler                 = 1
   *            APB2 Prescaler                 = 1
-  *            HSI Frequency(Hz)              = 16000000
-  *            PLL_M                          = 16
-  *            PLL_N                          = 336
-  *            PLL_P                          = 4
-  *            PLL_Q                          = 7
-  *            VDD(V)                         = 3.3
-  *            Main regulator output voltage  = Scale2 mode
-  *            Flash Latency(WS)              = 2 
+  *            MSI Frequency(Hz)              = 4000000
+  *            PLL_M                          = 1
+  *            PLL_N                          = 40
+  *            PLL_R                          = 2
+  *            PLL_P                          = 7
+  *            PLL_Q                          = 4
+  *            Flash Latency(WS)              = 4
   * @param  None
   * @retval None
   */
-static void SystemClock_Config(void)
+static void SystemClock_80MHz(void)
 {
-  RCC_ClkInitTypeDef RCC_ClkInitStruct;
-  RCC_OscInitTypeDef RCC_OscInitStruct;
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-  /* Enable Power Control clock */
-  __HAL_RCC_PWR_CLK_ENABLE();
-  
-  /* The voltage scaling allows optimizing the power consumption when the device is 
-     clocked below the maximum system frequency, to update the voltage scaling value 
-     regarding system frequency refer to product datasheet.  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+  __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_3);
+  HAL_RCC_DeInit();
 
-  /* Enable HSI Oscillator and activate PLL with HSI as source */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = 0x10;
+  /* MSI is enabled after System reset, activate PLL with MSI as source */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+  RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 336;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-  RCC_OscInitStruct.PLL.PLLQ = 7;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
+  RCC_OscInitStruct.PLL.PLLM = 1;
+  RCC_OscInitStruct.PLL.PLLN = 40;
+  RCC_OscInitStruct.PLL.PLLR = 2;
+  RCC_OscInitStruct.PLL.PLLP = 7;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
   if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
+    /* Initialization Error */
     Error_Handler();
   }
- 
+
   /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 
      clocks dividers */
   RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;  
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;  
-  if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  {
+    /* Initialization Error */
+    Error_Handler();
+  }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPUART1;
+  PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
 }
+
 
 /**
   * @brief  I2C error callbacks.

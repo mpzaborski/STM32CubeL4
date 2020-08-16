@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15.3)
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
-project(STM32F401RE-Nucleo)
+project(STM32L433RC-P-Nucleo)
 
 enable_language(C ASM)
 set(CMAKE_C_STANDARD 99)
@@ -11,45 +11,45 @@ set(PROGRAM_CMD ST-LINK_CLI.exe)
 
 
 set(STM32CUBEMX_GENERATED_FILES
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd_ex.c
-        ../../../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_i2c.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim_ex.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc_ex.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_flash.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_flash_ex.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_flash_ramfunc.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_gpio.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_dma_ex.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_dma.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_pwr.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_pwr_ex.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_cortex.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_exti.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_pcd.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_pcd_ex.c
+        ../../../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_ll_usb.c
         Src/main.c
-        Src/stm32f4xx_hal_msp.c
-        Src/stm32f4xx_it.c
-        Src/system_stm32f4xx.c
+        Src/stm32l4xx_hal_msp.c
+        Src/stm32l4xx_it.c
+        Src/system_stm32l4xx.c
 		Src/bme280_port.c
         stm32-ssd1306/ssd1306/ssd1306.c
         stm32-ssd1306/ssd1306/ssd1306_fonts.c
 		BME280_driver/bme280.c
-        SW4STM32/startup_stm32f401xe.s)
+        SW4STM32/startup_stm32l433xx.s)
 
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 add_executable(${EXECUTABLE} ${STM32CUBEMX_GENERATED_FILES})
 
 target_compile_definitions(${EXECUTABLE} PRIVATE
         -DUSE_HAL_DRIVER
-        -DSTM32F413xx
+        -DSTM32L443xx
         -DSSD1306_USE_I2C
         -DSSD1306_I2C_PORT=I2cHandle
-        -DSTM32F4
+        -DSTM32L4
         -DBME280_32BIT_ENABLE
         )
 
@@ -57,10 +57,10 @@ target_include_directories(${EXECUTABLE} PRIVATE
         Inc
         stm32-ssd1306/ssd1306
 		BME280_driver
-        ../../../Drivers/STM32F4xx_HAL_Driver/Inc
-        ../../../Drivers/CMSIS/Device/ST/STM32F4xx/Include
+        ../../../Drivers/STM32L4xx_HAL_Driver/Inc
+        ../../../Drivers/CMSIS/Device/ST/STM32L4xx/Include
         ../../../Drivers/CMSIS/Include
-        ../../../Drivers/BSP/STM32F401-Discovery
+        ../../../Drivers/BSP/STM32L4xx_Nucleo
         )
 
 target_compile_options(${EXECUTABLE} PRIVATE
@@ -78,7 +78,7 @@ target_compile_options(${EXECUTABLE} PRIVATE
         )
 
 target_link_options(${EXECUTABLE} PRIVATE
-        -T${CMAKE_SOURCE_DIR}/SW4STM32/STM32F4xx-Nucleo/STM32F401VEHx_FLASH.ld
+        -T${CMAKE_SOURCE_DIR}/SW4STM32/STM32L433RC_NUCLEO/STM32L433RCTx_FLASH.ld
         -mcpu=cortex-m4
         -mthumb
         -mfpu=fpv4-sp-d16

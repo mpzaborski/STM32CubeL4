@@ -1,0 +1,6 @@
+[submodule "Projects/NUCLEO-L433RC-P/Templates/stm32-ssd1306"]
+	path = Projects/NUCLEO-L433RC-P/Templates/stm32-ssd1306
+	url = https://github.com/afiskon/stm32-ssd1306.git
+[submodule "Projects/NUCLEO-L433RC-P/Templates/BME280_driver"]
+	path = Projects/NUCLEO-L433RC-P/Templates/BME280_driver
+	url = https://github.com/BoschSensortec/BME280_driver.git
